@@ -1,0 +1,23 @@
+# Dependencies e build
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Backup da configuração pessoal do Claude Code. Contém instruções de outros
+# clientes e referências a credenciais. O README dessa pasta já afirma que ela
+# fica fora do repositório, então aqui isso passa a ser verdade.
+fotos do caba/
+
+# Cópia local das skills, não faz parte da entrega
+skills/
+
+# Sistema
+.DS_Store
+Thumbs.db

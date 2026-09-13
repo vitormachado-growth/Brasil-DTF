@@ -1,0 +1,541 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Brasil DTF — design tokens.
+
+   Three colours, as briefed: navy, paper, yellow.
+
+   Both come from the brand's own crest: navy #051A3B and yellow #FEBF02. The
+   first landing page built for this client used the same two, so the dark
+   theme asked for here is that identity turned down rather than a new palette
+   bolted on. The reference site the client sent is navy with cyan, which is
+   the exact combination he called out as looking machine-made; navy with the
+   brand's yellow is not that, and it is his.
+
+   Text on yellow is always navy, never white. That rule came from the first
+   landing page and it is a contrast fact, not a preference.
+   --------------------------------------------------------------------------- */
+:root {
+  /* Navy ramp — page, surfaces, hairlines. `ink` is literal here: the product
+     is ink. Values 850 and 800 are carried over from the first landing page. */
+  --ink-950: #020a18; /* page floor */
+  --ink-900: #03122b; /* hero / section base */
+  --ink-850: #051a3b; /* brand navy — the anchor */
+  --ink-800: #0a2350; /* raised panel */
+  --ink-700: #123063; /* card */
+  --ink-600: #1c3f77; /* borders, dividers */
+  --ink-500: #2b5391; /* strong border, focused edge */
+
+  /* Paper */
+  --paper: #f4f7fc; /* primary text */
+  --muted: #9fb0c9; /* secondary copy over navy */
+  --muted-2: #6c81a1; /* tertiary, captions, inactive */
+
+  /* Yellow — the single accent */
+  --accent: #febf02;
+  --accent-hi: #ffd24a; /* hover / active */
+  --accent-ink: #051a3b; /* text and icons ON the accent, never white */
+  --accent-dim: rgb(254 191 2 / 0.12); /* fills */
+  --accent-line: rgb(254 191 2 / 0.34);
+
+  /* Gold, for type that shines. Both values are the `metal` pair from the
+     first landing page; the darker base is what makes a sweep read as metal
+     instead of as yellow going pale and back. */
+  --gold-base: #b8901e;
+  --gold-high: #fff3c4;
+
+  /* Curva do acordeao, a mesma da primeira landing page. */
+  --ease-faq: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* A curva geral da primeira landing page (o `--ease` dela): sai rapido e
+     assenta devagar, que e o que faz um card parecer que subiu, e nao que
+     pulou. */
+  --ease-card: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Sem isto, sair de block-size 0 para auto nao anima, so pula. E o opt-in
+     que libera transicao ate palavras-chave de tamanho. */
+  interpolate-size: allow-keywords;
+
+  --background: var(--ink-900);
+  --foreground: var(--paper);
+}
+
+/* A aura dos cards, tipada: declarar assim garante o valor inicial 0 mesmo
+   antes de o JavaScript existir, e evita que um valor invalido vazado pra
+   dentro do var() derrube a regra inteira.
+
+   `inherits: true` nao e detalhe, e o que faz a coisa funcionar: o GSAP
+   escreve a variavel no proprio <a>, e quem le e o `::before` dele. Um
+   pseudo-elemento herda do elemento que o originou, entao com `inherits:
+   false` ele receberia o valor inicial (0) e a aura nunca acenderia, sem
+   erro nenhum aparecendo. */
+@property --card-aura {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-ink-950: var(--ink-950);
+  --color-ink-900: var(--ink-900);
+  --color-ink-850: var(--ink-850);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+  --color-ink-500: var(--ink-500);
+
+  --color-paper: var(--paper);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+
+  --color-accent: var(--accent);
+  --color-accent-hi: var(--accent-hi);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-line: var(--accent-line);
+
+  /* Duas fontes, dois papeis: a grotesca de fachada para display e rotulos, a
+     sans de engenharia para leitura. A mono saiu em 06/09/2026 junto com a
+     `.type-spec` antiga, que era a unica coisa na pagina que usava ela. */
+  --font-display: var(--font-archivo);
+  --font-sans: var(--font-plex-sans);
+
+  /* Squared by default, per the reference the client sent. The video frame is
+     the deliberate exception, so its radius is a token rather than a one-off
+     class: if the rounding spreads to cards and buttons later, it spreads from
+     one place and stays consistent. */
+  --radius-none: 0px;
+  --radius-panel: 0.875rem;
+  /* Controls sit a step tighter than the panel they live next to: a smaller
+     box carrying the same radius as a big one reads rounder than it is. */
+  --radius-control: 0.625rem;
+
+  /* The page is designed for 1920x1080, the screen most of this audience is
+     on. At 90rem the content sat in a 1440px box with 240px of dead margin
+     either side; 105rem fills the screen and still leaves a real gutter. */
+  --container-shell: 105rem;
+
+  /* Fluid type. The `vw` term does the scaling between breakpoints and the
+     clamp caps it, so the same rules serve a phone and a 1080p monitor without
+     a stack of breakpoint overrides. Written in rem, not vw alone, so browser
+     zoom still works. */
+  --text-hero: clamp(1.75rem, 3.9vw, 4.75rem);
+  --text-lead: clamp(1rem, 1.05vw, 1.25rem);
+  --text-figure: clamp(1.5rem, 2.15vw, 2.75rem);
+  --text-nav: clamp(0.8125rem, 0.78vw, 0.9375rem);
+  --text-ui: clamp(0.875rem, 0.83vw, 1rem);
+
+  /* Fluid rhythm. Spacing has to grow with the type or a 1080p screen gets
+     large headlines packed at 1440-sized intervals, which reads cramped in the
+     middle and empty at the edges. */
+  --spacing-stack: clamp(1.25rem, 1.85vw, 2.375rem);
+  --spacing-columns: clamp(2rem, 4vw, 4.5rem);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* Keyboard focus stays visible everywhere, on the accent so it reads as
+     intentional rather than as a browser default. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* The opening animation is removed in CSS, before any script runs, so a
+     visitor who asked for less motion never sees a frame of it. */
+  @media (prefers-reduced-motion: reduce) {
+    #brand-intro {
+      display: none !important;
+    }
+  }
+
+  /* The overlay paints as soon as the HTML arrives, but GSAP cannot set the
+     opening pose until hydration, so the finished logo would sit on screen for
+     that gap and then snap back to animate in.
+
+     Hiding the lockup is the way to cover it. Declaring the poses here instead
+     does not work for the bottle: GSAP reads an existing `translateY(100%)` as
+     its starting offset and then adds its own 100% on top, so it begins a full
+     height below the clip and never enters the frame. */
+  #brand-intro [data-intro-lockup] {
+    visibility: hidden;
+  }
+}
+
+@layer utilities {
+  /* Start state for anything GSAP reveals. Rendering the finished element and
+     hiding it on the first frame causes a visible flash, so it ships hidden and
+     the timeline brings it in. GSAP's `autoAlpha` drives both properties, which
+     also keeps un-revealed content out of the tab order. */
+  .animate-hidden {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  /* Display type: tight, heavy, uppercase. Optical tracking has to come down
+     as the size goes up or the headline falls apart at hero scale. */
+  .type-display {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  /* The voice of anything you can press. Kept apart from `type-spec` on
+     purpose: mono is for values a reader could copy onto a job sheet, and an
+     action is not one. Every button and every call to action shares this
+     definition so they cannot drift.
+
+     Size is left to the caller: a primary button and a link inside a card
+     should sound alike but not shout equally loud. */
+  .type-action {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Rotulos: olho de secao, selo de card, ficha tecnica, rodape. Tudo que
+     nomeia alguma coisa sem ser o texto em si.
+
+     Era IBM Plex Mono ate 06/09/2026, quando o Vitor reprovou ("essa fonte e
+     MUITO feia"). Passou a ser a Archivo, a mesma do wordmark BRASIL DTF e dos
+     titulos, em caixa alta e bem espacada. Nao e so gosto: o olho de secao
+     fica a centimetros do logo e do titulo, e agora os tres falam com a mesma
+     voz. De quebra a pagina inteira ficou em duas fontes, porque a mono nao
+     era usada em nenhum outro lugar.
+
+     O espacamento largo e o que faz caixa alta em corpo pequeno continuar
+     legivel, e e ele que da o ar de etiqueta que o papel da classe pede. */
+  .type-spec {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* The print bed: a faint square grid, the surface a film sits on.
+     Drawn in low-alpha paper rather than a ramp step, because a navy step
+     bright enough to read on navy stops being a texture and starts being a
+     visible table of lines across the whole page. */
+  .bg-print-grid {
+    background-image:
+      linear-gradient(to right, rgb(159 176 201 / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(159 176 201 / 0.055) 1px, transparent 1px);
+    background-size: 4.5rem 4.5rem;
+  }
+
+  /* O card da primeira landing page, inteiro: as tres pecas dele (`.card`,
+     `.card-glow` e `.card-line`) reunidas numa classe so, porque aqui elas
+     nunca aparecem separadas e duas classes soltas viram duas chances de
+     divergir.
+
+     Duas mudancas em relacao ao original, as duas pedidas. **Aliviado**,
+     porque la os cards aparecem poucos por tela e aqui sao 8 impressoras mais
+     14 insumos: o que multiplica por 22 e o estado de repouso, entao e ele que
+     cede. A intensidade cheia ficou na faixa final, que aparece uma vez.
+     **E a aura mudou de gatilho**: no original ela acendia no hover, aqui ela
+     acende na rolagem, via `--card-aura` (ver `ScrollAura`). Brilho que so
+     existe sob o cursor e brilho que a maioria das visitas nunca ve.
+
+     Em repouso: facho dourado caindo de cima, degrade vertical do navy claro
+     pro escuro, e um fio branco de 1px na aresta de cima, que e o que faz a
+     superficie parecer inclinada pra luz em vez de chapada. */
+  .card-surface {
+    position: relative;
+    isolation: isolate;
+    /* A borda entra na aura junto com o brilho: e ela que faz o card parecer
+       aceso, e nao so ter um degrade dourado no rodape. A primeira declaracao
+       e o fallback, porque um navegador sem `color-mix` descarta a segunda e
+       ficaria sem borda nenhuma se essa fosse a unica. */
+    border: 1px solid var(--ink-600);
+    border-color: color-mix(
+      in srgb,
+      var(--ink-600),
+      var(--accent) calc(var(--card-aura, 0) * 34%)
+    );
+    background:
+      radial-gradient(
+        130% 90% at 50% -20%,
+        rgb(254 191 2 / 0.05),
+        transparent 55%
+      ),
+      linear-gradient(180deg, var(--ink-800), var(--ink-850) 55%, #04142f);
+    box-shadow:
+      0 10px 26px -22px rgb(3 15 36 / 0.5),
+      inset 0 1px rgb(255 255 255 / 0.045);
+    transition:
+      border-color 400ms var(--ease-card),
+      box-shadow 400ms var(--ease-card),
+      transform 400ms var(--ease-card);
+  }
+
+  /* A aura, acesa pela rolagem e nao pelo cursor: quem controla o brilho e a
+     variavel `--card-aura`, que o ScrollAura leva de 0 a 1 e de volta a 0
+     enquanto o card atravessa a tela. Sem JavaScript, ou com movimento
+     reduzido, ela nunca sai de 0 e o card fica no estado de repouso.
+
+     z-index negativo com `isolate` no pai: fica acima do fundo do card e
+     atras do texto, sem precisar posicionar cada bloco de conteudo. Nada de
+     transition aqui, senao ela brigaria com o scrub quadro a quadro. */
+  .card-surface::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--card-aura, 0);
+    background: radial-gradient(
+      120% 92% at 50% 104%,
+      rgb(254 191 2 / 0.2),
+      rgb(254 191 2 / 0) 62%
+    );
+  }
+
+  /* O fio dourado varrendo a base, da esquerda pra direita. Um pixel, nao
+     dois: com 22 cards na pagina, dois pixels de ouro viram um sublinhado. */
+  .card-surface::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 1px;
+    pointer-events: none;
+    transform: scaleX(0);
+    transform-origin: left;
+    background: linear-gradient(
+      to right,
+      var(--accent),
+      rgb(254 191 2 / 0.4)
+    );
+    transition: transform 1200ms var(--ease-card);
+  }
+
+  /* O cursor nao acende mais nada: ele so diz que da pra clicar. A borda
+     esquenta, o card sobe 2px e o fio varre a base. O brilho e da rolagem. */
+  /* `:focus-within` entrou em 10/09/2026, quando o card deixou de ser um link
+     só e virou um cartão com duas ações. O foco do teclado agora cai nos links
+     de dentro, nunca no cartão, então sem isto quem navega por tab via o
+     cartão apagado. */
+  .card-surface:hover,
+  .card-surface:focus-visible,
+  .card-surface:focus-within {
+    border-color: rgb(254 191 2 / 0.4);
+    box-shadow:
+      0 12px 30px -20px rgb(5 26 59 / 0.5),
+      inset 0 1px rgb(255 255 255 / 0.045);
+    transform: translateY(-2px);
+  }
+
+  .card-surface:hover::after,
+  .card-surface:focus-visible::after,
+  .card-surface:focus-within::after {
+    transform: scaleX(1);
+  }
+
+  /* A janela que amplia as fotos da maquina. O <dialog> nativo ja entrega Esc,
+     foco preso e o resto da pagina inerte; aqui so entra a aparencia.
+
+     Um <dialog> fechado nao aparece, e um aberto vem com margem automatica e
+     fundo branco do navegador, por isso o reset abaixo. */
+  .foto-ampliada {
+    max-inline-size: 100vw;
+    max-block-size: 100svh;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    border: 0;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    background: transparent;
+    color: var(--paper);
+  }
+
+  .foto-ampliada[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .foto-ampliada::backdrop {
+    background: rgb(2 10 24 / 0.88);
+    backdrop-filter: blur(3px);
+  }
+
+  /* Caixa de marcacao, o recipiente do check nas promessas do Sobre e da hero.
+     Um quadrado de fio dourado com um fundo de ouro quase transparente, e o
+     traco do check por dentro na cor de acento.
+
+     Nao e o circulo cheio de antes, e a diferenca nao e so estetica: um
+     quadrado com fio e uma caixa de marcacao de formulario, um objeto que
+     existe em ficha de pedido, e a pagina inteira fala essa lingua (cantos
+     retos, rotulos, fichas tecnicas). O circulo dourado cheio com check branco
+     dentro nao fala lingua nenhuma alem da de template.
+
+     Canto de 4px, nao o `--radius-control` de 10px: numa caixa de 21px aquele
+     raio vira quase um circulo, que e exatamente o que saiu daqui. */
+  .check-box {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    block-size: 1.3125rem;
+    inline-size: 1.3125rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgb(254 191 2 / 0.45);
+    background: rgb(254 191 2 / 0.07);
+    color: var(--accent);
+  }
+
+  /* Gold metal shine on type. A chrome gradient clipped to the glyphs with a
+     highlight band sweeping across on a loop. Ported from the first landing
+     page, where it was written for navy anchors and then never used because
+     that page was light; this page is the ground it was designed for.
+
+     The solid colour is the fallback: where `background-clip: text` is
+     missing, the word stays plainly yellow instead of vanishing. */
+  .text-shine {
+    color: var(--accent);
+  }
+
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .text-shine {
+      background: linear-gradient(
+        120deg,
+        var(--gold-base) 40%,
+        var(--gold-high) 50%,
+        var(--gold-base) 60%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: text-shine-sweep 5s linear infinite;
+      will-change: background-position;
+    }
+  }
+
+  /* Light reflection crossing a yellow surface, the first landing page's
+     signature on the "faturar" box. Linear timing, then a hold: the light
+     passes at constant speed and the pause comes from the keyframes, so it
+     reads as a reflection and not as a pulse. Needs `overflow-hidden` and a
+     positioned box on the element it decorates. */
+  .sweep-light::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.55) 50%,
+      transparent 65%
+    );
+    transform: translateX(-130%);
+    animation: sweep-light 4.5s linear 1.2s infinite;
+  }
+
+  /* Perguntas do suporte: a resposta cresce e encolhe em vez de pular.
+     ::details-content e a caixa que o proprio navegador poe em volta do
+     conteudo de um <details>, e anima-la e o unico jeito de dar altura
+     animada a um acordeao nativo sem trocar o elemento por JavaScript.
+     content-visibility precisa de allow-discrete, senao o texto some no
+     primeiro quadro do fechamento em vez de encolher junto. Navegador que
+     nao conhece ::details-content abre instantaneo, como era antes. */
+  /* Aberta, a pergunta ganha um banho de ouro quase invisivel. E o suficiente
+     pra marcar qual das sete esta aberta sem desenhar um cartao por cima da
+     lista, que brigaria com as linhas divisorias. */
+  .faq-item {
+    transition: background-color 420ms var(--ease-faq);
+  }
+
+  .faq-item[open] {
+    background-color: rgb(254 191 2 / 0.045);
+  }
+
+  .faq-item::details-content {
+    overflow: hidden;
+    block-size: 0;
+    transition:
+      block-size 420ms var(--ease-faq),
+      content-visibility 420ms allow-discrete;
+  }
+
+  .faq-item[open]::details-content {
+    block-size: auto;
+  }
+}
+
+@keyframes text-shine-sweep {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes sweep-light {
+  0% {
+    transform: translateX(-130%);
+  }
+  30% {
+    transform: translateX(130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+/* Phones: half the frames, no visible loss. Same trade the original made. */
+@media (max-width: 64rem) {
+  .text-shine {
+    animation-duration: 8s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-shine {
+    animation: none;
+  }
+  .sweep-light::after {
+    display: none;
+  }
+  .faq-item,
+  .faq-item::details-content {
+    transition: none;
+  }
+  /* Mesmo corte que a primeira landing page faz: o card continua reagindo,
+     mas chega inteiro, sem percurso. */
+  .card-surface,
+  .card-surface::after {
+    transition: none;
+  }
+  .card-surface:hover,
+  .card-surface:focus-visible,
+  .card-surface:focus-within {
+    transform: none;
+  }
+  /* O ScrollAura ja nem monta com movimento reduzido; isto e a garantia pra
+     quem liga a preferencia com a pagina aberta, e vale porque a regra do
+     pseudo-elemento ganha do inline que o GSAP escreve no elemento. */
+  .card-surface::before {
+    opacity: 0;
+  }
+}
